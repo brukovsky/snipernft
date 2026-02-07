@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Gift Sniper</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body { font-family: Arial; margin: 10px; background: #f0f0f0; }
+    .section { margin-bottom: 20px; }
+    select, input { width: 100%; padding: 10px; margin-bottom: 10px; }
+    button { width: 100%; padding: 10px; background: #0088cc; color: white; border: none; }
+    .subscription { background: white; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; }
+  </style>
+</head>
+<body>
+  <div id="create-section" class="section">
+    <h2>Создать подписку</h2>
+    <select id="gift">
+      <option value="">Выбери подарок</option>
+      <option value="chocolate_ice_cream">Chocolate Ice Cream</option>
+      <option value="surfer_dog">Surfer Dog</option>
+      <option value="bday_calendar">B-Day Calendar</option>
+      <option value="lollipop">Lollipop</option>
+      <option value="poop">Poop</option>
+      <option value="8_cupcake">8 Cupcake</option>
+      <option value="four_leaf_clover">Four Leaf Clover</option>
+      <option value="christmas_stocking">Christmas Stocking</option>
+      <option value="candy_cane">Candy Cane</option>
+      <option value="happy_bday">Happy B-Day</option>
+      <option value="weed_bag">Weed Bag</option>
+      <option value="cherry_cake">Cherry Cake</option>
+      <option value="crescent_mosque">Crescent Mosque</option>
+      <option value="socks">Socks</option>
+      <option value="2023_ball">2023 Ball</option>
+      <!-- Добавь больше подарков, если нужно -->
+    </select>
+    <select id="model">
+      <option value="all">Все модели</option>
+      <option value="model1">Модель 1</option>
+      <option value="model2">Модель 2</option>
+      <!-- Добавь реальные модели -->
+    </select>
+    <select id="background">
+      <option value="all">Все фоны</option>
+      <option value="black">Чёрный</option>
+      <option value="green">Зелёный</option>
+      <option value="holiday">Праздничный</option>
+      <!-- Добавь реальные фоны -->
+    </select>
+    <input id="max_price" type="number" placeholder="Макс цена (TON)">
+    <button onclick="createSubscription()">Подтвердить</button>
+  </div>
+
+  <div id="subscriptions-section" class="section">
+    <h2>Мои подписки</h2>
+    <div id="subscriptions-list"></div>
+  </div>
+
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
+
+    tg.onEvent('mainButtonClicked', loadSubscriptions);
+    tg.MainButton.text = 'Обновить список';
+    tg.MainButton.show();
+
+    function loadSubscriptions() {
+      tg.sendData(JSON.stringify({ action: 'load_subscriptions' }));
+    }
+
+    tg.onEvent('webAppData', (data) => {
+      if (data) {
+        const subs = JSON.parse(data);
+        const list = document.getElementById('subscriptions-list');
+        list.innerHTML = '';
+        subs.forEach((sub, index) => {
+          const div = document.createElement('div');
+          div.className = 'subscription';
+          div.innerHTML = `
+            Подарок: ${sub.gift}<br>
+            Модель: ${sub.model}<br>
+            Фон: ${sub.background}<br>
+            Макс цена: ${sub.max_price} TON<br>
+            <button onclick="stopSubscription(${index})">Остановить</button>
+            <button onclick="editSubscription(${index})">Изменить</button>
+          `;
+          list.appendChild(div);
+        });
+      }
+    });
+
+    function createSubscription() {
+      const gift = document.getElementById('gift').value;
+      const model = document.getElementById('model').value;
+      const background = document.getElementById('background').value;
+      const max_price = document.getElementById('max_price').value;
+      if (!gift || !max_price) return alert('Заполни подарок и цену');
+      tg.sendData(JSON.stringify({ action: 'create', gift, model, background, max_price }));
+    }
+
+    function stopSubscription(index) {
+      tg.sendData(JSON.stringify({ action: 'stop', index }));
+    }
+
+    function editSubscription(index) {
+      tg.sendData(JSON.stringify({ action: 'edit', index }));
+    }
+  </script>
+</body>
+</html>
